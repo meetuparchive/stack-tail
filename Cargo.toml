@@ -1,0 +1,16 @@
+[package]
+name = "stack-tail"
+version = "0.1.0"
+authors = ["softprops <d.tangren@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tokio = "0.1"
+futures = "0.1"
+chrono = "0.4"
+chrono-tz = "0.5"
+colored = "1.8"
+rusoto_cloudformation = "0.39"
+rusoto_core = "0.39"
+structopt = "0.2"
+tabwriter = "1.1"
