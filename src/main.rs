@@ -2,13 +2,14 @@
 use chrono::{DateTime, FixedOffset};
 use chrono_tz::Tz;
 use colored::Colorize;
+use console::Term;
 use futures::{stream, Future, Stream};
 use rusoto_cloudformation::{
     CloudFormation, CloudFormationClient, DescribeStackEventsError, DescribeStackEventsInput,
     DescribeStackResourcesError, DescribeStackResourcesInput, StackEvent, StackResource,
 };
 use rusoto_core::{credential::ChainProvider, request::HttpClient, Region, RusotoError};
-use std::{error::Error as StdError, fmt, io::Write, time::Duration};
+use std::{error::Error as StdError, fmt, io::Write, thread::sleep, time::Duration};
 use structopt::StructOpt;
 use tabwriter::TabWriter;
 
@@ -164,6 +165,9 @@ fn fetch_resources(
         if state.complete() {
             return None;
         }
+        if let FollowState::Remaining(_) = state {
+            sleep(Duration::from_secs(1));
+        }
         Some(
             cf.clone()
                 .describe_stack_resources(DescribeStackResourcesInput {
@@ -197,6 +201,9 @@ fn fetch_events(
     stream::unfold(FollowState::First(follow), move |state| {
         if state.complete() {
             return None;
+        }
+        if let FollowState::Remaining(_) = state {
+            sleep(Duration::from_secs(1));
         }
         Some(
             cf.clone()
@@ -264,10 +271,13 @@ fn main() -> Result<(), Box<dyn StdError>> {
         resources,
     } = Options::from_args();
 
-    let mut writer = TabWriter::new(std::io::stdout());
+    let term = Term::stdout();
+    let mut writer = TabWriter::new(term.clone());
     tokio::run(
         states(client(), stack_name, resources, follow)
             .for_each(move |states| {
+                drop(term.clear_screen());
+                drop(writer.flush());
                 for state in states {
                     drop(writeln!(&mut writer, "{}", Formatted(state, timezone)));
                 }
