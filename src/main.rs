@@ -287,6 +287,11 @@ mod tests {
     use chrono_tz::America::New_York;
 
     #[test]
+    fn follow_state_is_complete_when_nothing_is_remaining() {
+        assert!(FollowState::Remaining(false).complete())
+    }
+
+    #[test]
     fn options_require_stack_name() {
         assert!(Options::from_iter_safe(&["stack-tail"]).is_err())
     }
