@@ -138,21 +138,31 @@ impl From<StackResource> for ResourceState {
 }
 
 #[derive(PartialEq)]
-enum FollowState {
-    First(bool),
-    Remaining(bool),
+enum State {
+    Init(bool),
+    Next(bool, usize),
 }
 
-impl FollowState {
+impl State {
     fn follow(&self) -> bool {
         match *self {
-            FollowState::First(f) => f,
-            FollowState::Remaining(f) => f,
+            State::Init(f) => f,
+            State::Next(f, _) => f,
         }
     }
 
     fn complete(&self) -> bool {
-        *self == FollowState::Remaining(false)
+        if let State::Next(false, _) = self {
+            return true;
+        }
+        false
+    }
+
+    fn prev_len(&self) -> usize {
+        match *self {
+            State::Next(_, len) => len,
+            _ => 0,
+        }
     }
 }
 
@@ -160,12 +170,12 @@ fn fetch_resources(
     cf: CloudFormationClient,
     stack_name: String,
     follow: bool,
-) -> impl Stream<Item = Vec<ResourceState>, Error = Error> + Send + 'static {
-    stream::unfold(FollowState::First(follow), move |state| {
+) -> impl Stream<Item = (usize, Vec<ResourceState>), Error = Error> {
+    stream::unfold(State::Init(follow), move |state| {
         if state.complete() {
             return None;
         }
-        if let FollowState::Remaining(_) = state {
+        if let State::Next(_, _) = state {
             sleep(Duration::from_secs(1));
         }
         Some(
@@ -182,9 +192,10 @@ fn fetch_resources(
                         .map(ResourceState::from)
                         .collect::<Vec<_>>();
                     (
-                        states.clone(),
-                        FollowState::Remaining(
+                        (state.prev_len(), states.clone()),
+                        State::Next(
                             state.follow() && !states.iter().all(ResourceState::complete_or_failed),
+                            states.len(),
                         ),
                     )
                 })
@@ -197,12 +208,12 @@ fn fetch_events(
     cf: CloudFormationClient,
     stack_name: String,
     follow: bool,
-) -> impl Stream<Item = Vec<ResourceState>, Error = Error> + Send + 'static {
-    stream::unfold(FollowState::First(follow), move |state| {
+) -> impl Stream<Item = (usize, Vec<ResourceState>), Error = Error> {
+    stream::unfold(State::Init(follow), move |state| {
         if state.complete() {
             return None;
         }
-        if let FollowState::Remaining(_) = state {
+        if let State::Next(_, _) = state {
             sleep(Duration::from_secs(1));
         }
         Some(
@@ -219,12 +230,13 @@ fn fetch_events(
                         .map(ResourceState::from)
                         .collect::<Vec<_>>();
                     (
-                        states.clone(),
-                        FollowState::Remaining(
+                        (state.prev_len(), states.clone()),
+                        State::Next(
                             state.follow()
                                 && !states
                                     .iter()
                                     .any(|state| state.is_stack() && state.complete_or_failed()),
+                            states.len(),
                         ),
                     )
                 })
@@ -241,7 +253,7 @@ fn states(
     stack_name: String,
     resources: bool,
     follow: bool,
-) -> Box<Stream<Item = Vec<ResourceState>, Error = Error> + Send + 'static> {
+) -> Box<Stream<Item = (usize, Vec<ResourceState>), Error = Error> + Send + 'static> {
     if resources {
         Box::new(fetch_resources(cf, stack_name, follow))
     } else {
@@ -275,8 +287,9 @@ fn main() -> Result<(), Box<dyn StdError>> {
     let mut writer = TabWriter::new(term.clone());
     tokio::run(
         states(client(), stack_name, resources, follow)
-            .for_each(move |states| {
-                drop(term.clear_screen());
+            .for_each(move |result| {
+                let (prev_len, states) = result;
+                drop(term.clear_last_lines(prev_len));
                 drop(writer.flush());
                 for state in states {
                     drop(writeln!(&mut writer, "{}", Formatted(state, timezone)));
@@ -296,8 +309,13 @@ mod tests {
     use chrono_tz::America::New_York;
 
     #[test]
-    fn follow_state_is_complete_when_nothing_is_remaining() {
-        assert!(FollowState::Remaining(false).complete())
+    fn state_tracks_prev_len() {
+        assert_eq!(State::Next(false, 10).prev_len(), 10)
+    }
+
+    #[test]
+    fn state_is_complete_when_nothing_is_next() {
+        assert!(State::Next(false, 0).complete())
     }
 
     #[test]
