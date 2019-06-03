@@ -220,7 +220,7 @@ fn fetch_events(
     })
 }
 
-/// Return a stream of cloud formation resoure states, 
+/// Return a stream of cloud formation resoure states,
 /// either for a aggregate list of resources for the resource
 /// states over time
 fn states(
