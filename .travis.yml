@@ -21,7 +21,7 @@ cache:
 # yaml ref for deploying release binary to github
 DEPLOY_TO_GITHUB: &DEPLOY_TO_GITHUB
   before_deploy:
-    - name="lev-$TRAVIS_TAG-$OS-$ARCH"
+    - name="stack-tail-$TRAVIS_TAG-$OS-$ARCH"
     - src=$(pwd)
     - mkdir $name
     - strip target/$TARGET/release/stack-tail
