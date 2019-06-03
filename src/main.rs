@@ -8,9 +8,10 @@ use rusoto_cloudformation::{
     DescribeStackResourcesError, DescribeStackResourcesInput, StackEvent, StackResource,
 };
 use rusoto_core::{credential::ChainProvider, request::HttpClient, Region, RusotoError};
-use std::{fmt, io::Write, thread::sleep, time::Duration};
+use std::{fmt, io::Write, time::Duration};
 use structopt::StructOpt;
 use tabwriter::TabWriter;
+use std::error::Error as StdError;
 
 enum Error {
     Events(RusotoError<DescribeStackEventsError>),
@@ -136,9 +137,23 @@ impl From<StackResource> for ResourceState {
     }
 }
 
+#[derive(PartialEq)]
 enum FollowState {
     First(bool),
     Remaining(bool),
+}
+
+impl FollowState {
+    fn follow(&self) -> bool {
+        match *self {
+            FollowState::First(f) => f,
+            FollowState::Remaining(f) => f
+        }
+    }
+    
+    fn complete(&self) -> bool {
+        *self == FollowState::Remaining(false)
+    }
 }
 
 fn fetch_resources(
@@ -147,7 +162,7 @@ fn fetch_resources(
     follow: bool,
 ) -> impl Stream<Item = Vec<ResourceState>, Error = Error> + Send + 'static {
     stream::unfold(FollowState::First(follow), move |state| {
-        if let FollowState::Remaining(false) = state {
+        if state.complete() {
             return None;
         }
         Some(
@@ -157,10 +172,6 @@ fn fetch_resources(
                     ..DescribeStackResourcesInput::default()
                 })
                 .map(move |result| {
-                    let follow = match state {
-                        FollowState::First(follow) => follow,
-                        FollowState::Remaining(follow) => follow,
-                    };
                     let states = result
                         .stack_resources
                         .unwrap_or_default()
@@ -170,7 +181,7 @@ fn fetch_resources(
                     (
                         states.clone(),
                         FollowState::Remaining(
-                            follow && !states.iter().all(ResourceState::complete_or_failed),
+                            state.follow() && !states.iter().all(ResourceState::complete_or_failed),
                         ),
                     )
                 })
@@ -185,7 +196,7 @@ fn fetch_events(
     follow: bool,
 ) -> impl Stream<Item = Vec<ResourceState>, Error = Error> + Send + 'static {
     stream::unfold(FollowState::First(follow), move |state| {
-        if let FollowState::Remaining(false) = state {
+        if state.complete() {
             return None;
         }
         Some(
@@ -195,10 +206,6 @@ fn fetch_events(
                     ..DescribeStackEventsInput::default()
                 })
                 .map(move |result| {
-                    let follow = match state {
-                        FollowState::First(follow) => follow,
-                        FollowState::Remaining(follow) => follow,
-                    };
                     let states = result
                         .stack_events
                         .unwrap_or_default()
@@ -208,7 +215,7 @@ fn fetch_events(
                     (
                         states.clone(),
                         FollowState::Remaining(
-                            follow
+                            state.follow()
                                 && !states
                                     .iter()
                                     .any(|state| state.is_stack() && state.complete_or_failed()),
@@ -258,10 +265,9 @@ fn main() -> Result<(), Box<dyn StdError>> {
         resources,
     } = Options::from_args();
 
-    let cf = client();
     let mut writer = TabWriter::new(std::io::stdout());
     tokio::run(
-        states(cf, stack_name, resources, follow)
+        states(client(), stack_name, resources, follow)
             .for_each(move |states| {
                 for state in states {
                     drop(writeln!(&mut writer, "{}", Formatted(state, timezone)));
