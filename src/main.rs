@@ -8,10 +8,9 @@ use rusoto_cloudformation::{
     DescribeStackResourcesError, DescribeStackResourcesInput, StackEvent, StackResource,
 };
 use rusoto_core::{credential::ChainProvider, request::HttpClient, Region, RusotoError};
-use std::{fmt, io::Write, time::Duration};
+use std::{error::Error as StdError, fmt, io::Write, time::Duration};
 use structopt::StructOpt;
 use tabwriter::TabWriter;
-use std::error::Error as StdError;
 
 enum Error {
     Events(RusotoError<DescribeStackEventsError>),
@@ -147,10 +146,10 @@ impl FollowState {
     fn follow(&self) -> bool {
         match *self {
             FollowState::First(f) => f,
-            FollowState::Remaining(f) => f
+            FollowState::Remaining(f) => f,
         }
     }
-    
+
     fn complete(&self) -> bool {
         *self == FollowState::Remaining(false)
     }
