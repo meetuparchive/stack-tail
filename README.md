@@ -38,6 +38,7 @@ OPTIONS:
 
 ARGS:
     <stack_name>
+```
 
 ## events
 
