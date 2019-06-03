@@ -14,7 +14,7 @@ of your stack.
 
 TBD
 
-# 🤸 usage
+## 🤸 usage
 
 This tool communicates with AWS CloudFormation API's using the standard AWS credential chain
 to authenticate requests. You may wish to export an `AWS_PROFILE` env variable to query your stacks from different accounts or different regions.
@@ -40,7 +40,7 @@ ARGS:
     <stack_name>
 ```
 
-## events
+### events
 
 The default view is a list of stack update events
 
@@ -58,7 +58,7 @@ $ stack-tail -r my-stack-name
 ```
 
 
-# 👩‍🏭 development
+## 👩‍🏭 development
 
 This is a [rustlang](https://www.rust-lang.org/en-US/) application.
 Go grab yourself a copy with [rustup](https://rustup.rs/).
