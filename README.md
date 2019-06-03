@@ -12,7 +12,12 @@ of your stack.
 
 ## 📦 install
 
-TBD
+Via github releases
+Prebuilt binaries for osx and linux are available for download directly from Github Releases
+
+$ curl -L \
+ "https://github.com/meetup/stack-tail/releases/download/v0.0.0/stack-tail-v0.0.0-$(uname -s)-$(uname -m).tar.gz" \
+  | tar -xz
 
 ## 🤸 usage
 
