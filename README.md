@@ -10,7 +10,7 @@ the AWS console can pull you out of your _flow_ using the aws cli can put a stra
 `stack-tail` is meant to fill the cap and draw a quick and clear picture to understanding the state
 of your stack.
 
-# 📦 install
+## 📦 install
 
 TBD
 
