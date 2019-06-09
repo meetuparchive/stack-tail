@@ -4,8 +4,8 @@
 
 ## 🤔 about
 
-Despite leveraging virtuous a continously deployment model for your application and infrastructure
-you may find yourself curious about the current state of your Cloudformation stack. Visiting 
+Despite leveraging virtuous a continuously deployment model for your application and infrastructure
+you may find yourself curious about the current state of your Cloud Formation stack. Visiting 
 the AWS console can pull you out of your _flow_ using the aws cli can put a strain on your eyes. 
 `stack-tail` is meant to fill the cap and draw a quick and clear picture to understanding the state
 of your stack.
@@ -15,16 +15,18 @@ of your stack.
 Via github releases
 Prebuilt binaries for osx and linux are available for download directly from Github Releases
 
+```sh
 $ curl -L \
  "https://github.com/meetup/stack-tail/releases/download/v0.0.0/stack-tail-v0.0.0-$(uname -s)-$(uname -m).tar.gz" \
   | tar -xz
+```
 
 ## 🤸 usage
 
-This tool communicates with AWS CloudFormation API's using the standard AWS credential chain
+This tool communicates with AWS Cloud Formation APIs using the standard [AWS credential chain](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
 to authenticate requests. You may wish to export an `AWS_PROFILE` env variable to query your stacks from different accounts or different regions.
 
-The main usecase for this cli tailing the state of a CloudFormation stack
+The main use case for this CLI quickly assessing the state of a target CloudFormation stack by tailing its active or current state.
 
 ```sh
 USAGE:
@@ -55,8 +57,8 @@ $ stack-tail my-stack-name
 
 ## resources
 
-In some cases you may wish to only want to get a picture of the aggregate list of stack resources
-you can use the `--resources` or `-r` to get this view
+In some cases you may wish to only want to get a picture of the aggregate list of stack resources.
+You can use the `--resources` or `-r` flag to get this insight
 
 ```sh
 $ stack-tail -r my-stack-name
