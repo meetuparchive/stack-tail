@@ -28,6 +28,13 @@ to authenticate requests. You may wish to export an `AWS_PROFILE` env variable t
 
 The main use case for this CLI quickly assessing the state of a target CloudFormation stack by tailing its active or current state.
 
+> 💡You can get of available list of stack names with the following AWS cli command
+> ```sh
+> $ aws cloudformation list-stacks \
+>    --query 'StackSummaries[*].StackName' \
+>    --output=json
+> ```
+
 ```sh
 USAGE:
     stack-tail [FLAGS] [OPTIONS] <stack_name>
