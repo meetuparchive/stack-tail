@@ -13,6 +13,10 @@ use std::{error::Error as StdError, fmt, io::Write, thread::sleep, time::Duratio
 use structopt::StructOpt;
 use tabwriter::TabWriter;
 
+const STACK_RESOURCE: &str = "AWS::CloudFormation::Stack";
+const COMPLETE: &str = "_COMPLETE";
+const FAILED: &str = "_FAILED";
+
 enum Error {
     Events(RusotoError<DescribeStackEventsError>),
     Resources(RusotoError<DescribeStackResourcesError>),
@@ -65,11 +69,11 @@ struct ResourceState {
 
 impl ResourceState {
     fn complete_or_failed(&self) -> bool {
-        self.status.ends_with("COMPLETE") || self.status.ends_with("FAILED")
+        self.status.ends_with(COMPLETE) || self.status.ends_with(FAILED)
     }
 
     fn is_stack(&self) -> bool {
-        self.resource_type == "AWS::CloudFormation::Stack"
+        self.resource_type == STACK_RESOURCE
     }
 }
 
@@ -95,7 +99,7 @@ impl fmt::Display for Formatted {
             state.resource_id.bold(),
             state.resource_type.bright_black(),
             match &state.status[..] {
-                complete if complete.ends_with("_COMPLETE") => format!(
+                complete if complete.ends_with(COMPLETE) => format!(
                     "{} {}",
                     if complete.starts_with("DELETE") {
                         "⚰️ "
@@ -104,7 +108,7 @@ impl fmt::Display for Formatted {
                     },
                     state.status.bold().bright_green()
                 ),
-                failed if failed.ends_with("_FAILED") => {
+                failed if failed.ends_with(FAILED) => {
                     format!("❌ {}", state.status.bold().bright_red())
                 }
                 _ => format!("🔄 {}", state.status),
@@ -306,7 +310,48 @@ fn main() -> Result<(), Box<dyn StdError>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     use chrono_tz::America::New_York;
+
+    #[test]
+    fn state_is_complete_and_failure_aware() {
+        for (status, expectation) in &[
+            ("FOO_COMPLETE", true),
+            ("FOO_FAILED", true),
+            ("FOO_IN_PROGRESS", false),
+        ] {
+            assert_eq!(
+                ResourceState {
+                    resource_type: "foobar".into(),
+                    timestamp: DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")
+                        .expect("invalid timestamp"),
+                    status: status.to_string(),
+                    resource_id: "foobar".into(),
+                    reason: "...".into(),
+                }
+                .complete_or_failed(),
+                *expectation
+            )
+        }
+    }
+
+    #[test]
+    fn state_is_resource_aware() {
+        for (resource_type, expectation) in &[(STACK_RESOURCE, true), ("not::a::stack", false)] {
+            assert_eq!(
+                ResourceState {
+                    resource_type: resource_type.to_string(),
+                    timestamp: DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")
+                        .expect("invalid timestamp"),
+                    status: "UPDATE_COMPLETE".into(),
+                    resource_id: "foobar".into(),
+                    reason: "...".into()
+                }
+                .is_stack(),
+                *expectation
+            )
+        }
+    }
 
     #[test]
     fn state_tracks_prev_len() {
