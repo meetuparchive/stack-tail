@@ -94,7 +94,7 @@ impl fmt::Display for Formatted {
         };
         write!(
             f,
-            "{}\t{}\t{}\t{}",
+            "{}\t{}\t{}\t{}\t{}",
             timestamp,
             state.resource_id.bold(),
             state.resource_type.bright_black(),
@@ -112,7 +112,8 @@ impl fmt::Display for Formatted {
                     format!("❌ {}", state.status.bold().bright_red())
                 }
                 _ => format!("🔄 {}", state.status),
-            }
+            },
+            state.reason.bright_black()
         )
     }
 }
