@@ -316,7 +316,7 @@ mod tests {
     use chrono_tz::America::New_York;
 
     #[test]
-    fn state_is_complete_and_failure_aware() {
+    fn state_is_complete_and_failure_aware() -> Result<(), chrono::format::ParseError> {
         for (status, expectation) in &[
             ("FOO_COMPLETE", true),
             ("FOO_FAILED", true),
@@ -325,8 +325,7 @@ mod tests {
             assert_eq!(
                 ResourceState {
                     resource_type: "foobar".into(),
-                    timestamp: DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")
-                        .expect("invalid timestamp"),
+                    timestamp: DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")?,
                     status: status.to_string(),
                     resource_id: "foobar".into(),
                     reason: "...".into(),
@@ -335,16 +334,16 @@ mod tests {
                 *expectation
             )
         }
+        Ok(())
     }
 
     #[test]
-    fn state_is_resource_aware() {
+    fn state_is_resource_aware() -> Result<(), chrono::format::ParseError> {
         for (resource_type, expectation) in &[(STACK_RESOURCE, true), ("not::a::stack", false)] {
             assert_eq!(
                 ResourceState {
                     resource_type: resource_type.to_string(),
-                    timestamp: DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")
-                        .expect("invalid timestamp"),
+                    timestamp: DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")?,
                     status: "UPDATE_COMPLETE".into(),
                     resource_id: "foobar".into(),
                     reason: "...".into()
@@ -353,6 +352,7 @@ mod tests {
                 *expectation
             )
         }
+        OK(())
     }
 
     #[test]
