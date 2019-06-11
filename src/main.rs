@@ -228,18 +228,19 @@ fn fetch_events(
                     ..DescribeStackEventsInput::default()
                 })
                 .map(move |result| {
-                    let states = result
+                    let mut states = result
                         .stack_events
                         .unwrap_or_default()
                         .into_iter()
                         .map(ResourceState::from)
                         .collect::<Vec<_>>();
+                    states.reverse();
                     (
                         (state.prev_len(), states.clone()),
                         State::Next(
                             state.follow()
                                 && !states
-                                    .first()
+                                    .last()
                                     .iter()
                                     .any(|state| state.is_stack() && state.complete_or_failed()),
                             states.len(),
