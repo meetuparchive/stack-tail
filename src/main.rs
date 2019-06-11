@@ -317,6 +317,18 @@ mod tests {
     use chrono_tz::America::New_York;
 
     #[test]
+    fn state_communicates_followability() {
+        for (state, expectation) in &[
+            (State::Init(true), true),
+            (State::Init(false), false),
+            (State::Next(true, 0), true),
+            (State::Next(false, 0), false),
+        ] {
+            assert_eq!(state.follow(), *expectation)
+        }
+    }
+
+    #[test]
     fn state_is_complete_and_failure_aware() -> Result<(), chrono::format::ParseError> {
         for (status, expectation) in &[
             ("FOO_COMPLETE", true),
