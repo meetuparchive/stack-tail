@@ -362,6 +362,11 @@ mod tests {
     }
 
     #[test]
+    fn state_prev_len_for_init_is_zero() {
+         assert_eq!(State::Init(false).prev_len(), 0)
+    }
+
+    #[test]
     fn state_is_complete_when_nothing_is_next() {
         assert!(State::Next(false, 0).complete())
     }
