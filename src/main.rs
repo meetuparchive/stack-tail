@@ -353,7 +353,7 @@ mod tests {
                 *expectation
             )
         }
-        OK(())
+        Ok(())
     }
 
     #[test]
