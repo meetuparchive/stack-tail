@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn state_prev_len_for_init_is_zero() {
-         assert_eq!(State::Init(false).prev_len(), 0)
+        assert_eq!(State::Init(false).prev_len(), 0)
     }
 
     #[test]
