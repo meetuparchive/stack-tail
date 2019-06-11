@@ -257,7 +257,7 @@ fn states(
     stack_name: String,
     resources: bool,
     follow: bool,
-) -> Box<Stream<Item = (usize, Vec<ResourceState>), Error = Error> + Send + 'static> {
+) -> Box<dyn Stream<Item = (usize, Vec<ResourceState>), Error = Error> + Send + 'static> {
     if resources {
         Box::new(fetch_resources(cf, stack_name, follow))
     } else {
