@@ -239,6 +239,7 @@ fn fetch_events(
                         State::Next(
                             state.follow()
                                 && !states
+                                    .first()
                                     .iter()
                                     .any(|state| state.is_stack() && state.complete_or_failed()),
                             states.len(),
