@@ -4,7 +4,7 @@
 
 ## 🤔 about
 
-Despite leveraging a virtuous continuously deployment model for your application and infrastructure
+Despite leveraging a virtuous continuous deployment model for your application and infrastructure
 you may find yourself curious about the current state of your Cloud Formation stack. Visiting 
 the AWS console can pull you out of your _flow_ using the aws cli can put a strain on your eyes. 
 `stack-tail` is meant to fill the cap and draw a quick and clear picture to understanding the state
