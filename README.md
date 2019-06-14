@@ -17,7 +17,7 @@ Prebuilt binaries for osx and linux are available for download directly from Git
 
 ```sh
 $ curl -L \
- "https://github.com/meetup/stack-tail/releases/download/v0.0.0/stack-tail-v0.0.0-$(uname -s)-$(uname -m).tar.gz" \
+ "https://github.com/meetup/stack-tail/releases/download/v0.0.1/stack-tail-v0.0.1-$(uname -s)-$(uname -m).tar.gz" \
   | tar -xz
 ```
 
