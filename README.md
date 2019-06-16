@@ -12,7 +12,15 @@ of your stack.
 
 ## 📦 install
 
-Via github releases
+## Via Homebrew
+
+```sh
+$ tap meetup/tools
+$ brew install stack-tail
+```
+
+## Via Github Releases
+
 Prebuilt binaries for osx and linux are available for download directly from Github Releases
 
 ```sh
