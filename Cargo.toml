@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 console = "0.7"
 chrono = "0.4"
-chrono-tz = "0.5"
+chrono-tz = "0.8"
 colored = "1.8"
 futures = "0.1"
 rusoto_cloudformation = "0.40"
